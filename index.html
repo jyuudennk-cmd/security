@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>あんしんセキュリティ 総合習熟チェック</title>
+    
+    <style>
+        :root { 
+            --secure-green: #00897B; /* セキュアグリーン */
+            --dark-green: #004D40; 
+            --docomo-red: #cc0033; /* ドコモレッド */
+            --secondary: #E0F2F1; /* 薄いグリーン */
+            --text: #333333; 
+            --card-bg: #ffffff;
+        }
+        body { font-family: "Helvetica Neue", Arial, sans-serif; background: var(--secondary); margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; -webkit-user-select: none; color: var(--text); }
+        
+        header { 
+            background: linear-gradient(135deg, var(--dark-green) 0%, var(--secure-green) 100%); 
+            color: white; width: 100%; text-align: center; padding: 16px 0; 
+            box-shadow: 0 4px 12px rgba(0, 77, 64, 0.3); 
+            position: sticky; top: 0; z-index: 100; 
+            border-bottom: 3px solid #B2DFDB;
+        }
+        h1 { margin: 0; font-size: 1.15rem; letter-spacing: 0.05em; font-weight: bold; }
+        .update-info { font-size: 0.75rem; color: #B2DFDB; margin-top: 4px; font-weight: bold; }
+        
+        .progress-container { width: 100%; background: #B2DFDB; height: 6px; }
+        #progress-bar { background: var(--docomo-red); width: 0%; height: 100%; transition: 0.4s ease-out; }
+
+        .stat-area { font-size: 0.8rem; margin-top: 15px; opacity: 0.8; color: var(--dark-green); font-weight: bold; letter-spacing: 0.05em; }
+
+        .container { width: 90%; max-width: 400px; margin-top: 20px; perspective: 1000px; }
+        .card { width: 100%; height: 400px; position: relative; transform-style: preserve-3d; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .card.is-flipped { transform: rotateY(180deg); }
+        
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; box-sizing: border-box; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); background: var(--card-bg); color: var(--text); border: 1px solid #B2DFDB; }
+        
+        .card-front { border-top: 8px solid var(--secure-green); }
+        .card-back { transform: rotateY(180deg); background: #FAFAFA; border: 3px solid var(--secure-green); }
+        
+        .cat-badge { position: absolute; top: 15px; left: 15px; background: var(--secure-green); padding: 4px 12px; border-radius: 4px; font-size: 0.7rem; color: white; font-weight: bold; letter-spacing: 0.05em; }
+        .cat-badge.alert { background: var(--docomo-red); }
+
+        .question { font-size: 1.15rem; font-weight: bold; line-height: 1.5; text-align: center; color: var(--text); }
+        .answer { font-size: 1.05rem; line-height: 1.6; text-align: left; width: 100%; color: var(--text); }
+        .answer strong { color: var(--secure-green); border-bottom: 2px solid rgba(0, 137, 123, 0.2); }
+        .answer strong.red { color: var(--docomo-red); border-bottom: 2px solid rgba(204, 0, 51, 0.2); }
+        
+        .tap-hint { margin-top: 25px; color: #80CBC4; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: bold; opacity: 0.9; }
+
+        .controls { margin-top: 25px; display: flex; gap: 12px; width: 90%; max-width: 400px; }
+        button { flex: 1; padding: 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.95rem; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        button:active { transform: scale(0.96); }
+        .btn-check { background: var(--secure-green); color: white; }
+        .btn-next { background: #B2DFDB; color: var(--dark-green); }
+        
+        .btn-reset { margin-top: 20px; background: transparent; color: #00695C; text-decoration: underline; font-size: 0.75rem; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>あんしんセキュリティ 習熟</h1>
+    <div class="update-info">詐欺対策プラス＆基本機能 総合版</div>
+</header>
+<div class="progress-container"><div id="progress-bar"></div></div>
+<div class="stat-area" id="stat-text">Ready...</div>
+
+<div class="container">
+    <div class="card" id="card" onclick="this.classList.toggle('is-flipped')">
+        <div class="card-face card-front">
+            <span class="cat-badge" id="cat-display">-</span>
+            <div class="question" id="q-display">タップして開始</div>
+            <div class="tap-hint">Tap to Flip</div>
+        </div>
+        <div class="card-face card-back">
+            <div class="answer" id="a-display">---</div>
+            <div class="tap-hint" style="color:var(--secure-green)">Back</div>
+        </div>
+    </div>
+</div>
+
+<div class="controls">
+    <button class="btn-check" onclick="markAsLearned()">確認済</button>
+    <button class="btn-next" onclick="nextCard()">次へ</button>
+</div>
+
+<button class="btn-reset" onclick="resetProgress()">進捗リセット</button>
+
+<script>
+    const allData = [
+        // ■第1章：基本機能の振り返り
+        { cat: "基本機能", q: "「ウイルス対策」機能では、具体的に何をスキャンしますか？", a: "スマートフォン内の<strong>アプリやファイル</strong>にウイルスやマルウェアが潜んでいないかをスキャンします。（※iOS版はOS仕様により非提供）" },
+        { cat: "基本機能", q: "「危険サイト対策」機能は、どのような脅威から守ってくれますか？", a: "偽の金融機関サイトや詐欺サイトなど、<strong>フィッシング詐欺やウイルス感染の恐れがあるWebサイトへのアクセスをブロック</strong>します。" },
+        { cat: "基本機能", q: "「危険Wi-Fi対策」は、どのようなWi-Fiに接続した際に警告を出しますか？", a: "暗号化されていない、または改ざんのリスクがある<strong>安全性の低いフリーWi-Fiスポット</strong>に接続した際に警告します。" },
+        { cat: "基本機能", q: "従来の「迷惑電話対策」における基本動作はどのようなものですか？", a: "データベースに基づき、不審な電話番号からの着信時に<strong>画面へ「迷惑電話の恐れがあります」等の警告を表示</strong>します。" },
+        { cat: "基本機能", q: "「迷惑メール対策」は、どのメールサービスを利用している場合に適用されますか？", a: "<strong>ドコモメール（@docomo.ne.jp）</strong>を利用している場合のみ有効です。" },
+        { cat: "基本機能", q: "迷惑メール対策のフィルター基準は、お客様自身で調整できますか？", a: "<strong>可能です。</strong>「強・標準・弱」などのレベル設定や、個別の受信/拒否設定が行えます。" },
+        { cat: "基本機能", q: "Android版で提供されている「危険SMS対策」はどのような機能ですか？", a: "SMSに記載された<strong>URLを判定し、危険なサイトへの誘導をブロック</strong>します。" },
+        { cat: "基本機能", q: "迷惑電話や危険サイトの判定に使われるデータベースは、どう更新されますか？", a: "アプリが<strong>自動的に最新のパターンファイルへ更新</strong>します。" },
+        { cat: "基本機能", q: "アプリ初期設定時、Android端末で必ず許可が必要な権限は何ですか？", a: "「他のアプリの上に重ねて表示」や「ユーザーの利用状況へのアクセス」などの<strong>システム権限の許可</strong>が必要です。" },
+        { cat: "基本機能", q: "あんしんセキュリティは、ドコモ回線の契約がないスマホでも利用可能ですか？", a: "<strong>可能です。</strong>dアカウントがあれば、他社回線でも利用できます。" },
+
+        // ■第2章：新プランのラインナップと料金
+        { cat: "新プラン", q: "2026年5月27日以降、スタンダード系プランのラインナップはどうなりますか？", a: "<strong>「旧スタンダード（月額550円）」</strong>と、新設の<strong>「スタンダード 詐欺対策プラス（月額999円）」</strong>の2種類が併売されます。" },
+        { cat: "受付停止", q: "新プランの提供開始に伴い、5月27日で「新規受付停止」となるプランは何ですか？", a: "<strong class='red'>「トータルプラン（月額1,089円）」</strong>です。（※既存契約者は継続可能）", isAlert: true },
+        { cat: "新プラン", q: "新設された最上位の「トータルプラン 詐欺対策プラス」の月額料金は？", a: "<strong>月額1,815円（税込）</strong>です。" },
+        { cat: "新プラン", q: "すでに月額550円のプランを契約中のお客様が、月額999円へ変更することは可能ですか？", a: "<strong>可能です。</strong>" },
+        { cat: "仕様", q: "新プラン「詐欺対策プラス」の機能をフルに利用するためのOS推奨環境は？", a: "Androidは<strong>「10.0以上」</strong>、iPhone（iOS）は<strong>「17.0以上」</strong>です。" },
+        { cat: "キャンペーン", q: "新規で「スタンダードプラン 詐欺対策プラス」を契約した場合の初回無料期間は？", a: "<strong>初回31日間無料</strong>が適用されます。" },
+
+        // ■第3章：「詐欺対策プラス」の追加機能
+        { cat: "新機能", q: "「詐欺対策プラス」に追加される3つの新機能とは何ですか？", a: "<strong>「迷惑電話の拒否機能」「詐欺チェック機能」「フェイク画像診断機能」</strong>の3つです。" },
+        { cat: "新機能", q: "新設された「迷惑電話の拒否機能」は、従来の警告表示からどう進化しましたか？", a: "不審な着信を警告するだけでなく、<strong>「自動的に着信を拒否（サイレント拒否）」</strong>するようになります。" },
+        { cat: "仕様注意", q: "「迷惑電話の拒否機能」において、iPhone（iOS）の仕様上の制限は何ですか？", a: "Androidは「発信・着信」両方の拒否が可能ですが、<strong class='red'>iOSは「着信のみ」の拒否</strong>となります。", isAlert: true },
+        { cat: "提供元", q: "迷惑電話のデータベース（自動拒否の基準）は、どこの企業の技術を採用していますか？", a: "<strong>トビラシステムズ株式会社</strong>です。" },
+        { cat: "新機能", q: "「詐欺チェック機能」は、お客様がどのような操作をして使いますか？", a: "怪しいサイトやSNSチャットの<strong>「スクリーンショット」を撮影し、アプリへアップロード</strong>して判定させます。" },
+        { cat: "新機能", q: "「詐欺チェック機能」のAIは、ロマンス詐欺など何種類の詐欺パターンを検出できますか？", a: "<strong>9種類</strong>の詐欺の可能性を検出・判定します。" },
+        { cat: "新機能", q: "「フェイク画像診断機能」とは、どのような脅威を調べるための機能ですか？", a: "画像内の人物の顔に、<strong>「ディープフェイク（AIによる偽造）」の可能性があるか</strong>を診断します。" },
+        { cat: "新機能", q: "「フェイク画像診断機能」の診断結果は、画面上に何段階で表示されますか？", a: "<strong>3段階</strong>で危険度が表示されます。" },
+        { cat: "提供元", q: "詐欺チェックやフェイク画像診断のAIエンジンを提供している提携企業はどこですか？", a: "<strong>F-Secure Inc.（エフセキュア）</strong>です。" },
+
+        // ■第4章：トータルプラン限定機能とキャンペーン
+        { cat: "トータル限定", q: "月額1,815円の「トータル 詐欺対策プラス」にのみ搭載されている2つの限定機能は？", a: "<strong>パソコン（Windows/Mac）の保護機能</strong>と、<strong>個人情報漏洩モニタリング（ダークウェブ監視）機能</strong>です。" },
+        { cat: "キャンペーン", q: "「新プランリリース記念抽選キャンペーン」の実施期間は？", a: "<strong>2026年5月27日〜2026年9月30日</strong>までです。" },
+        { cat: "キャンペーン", q: "キャンペーンの抽選に参加するためには、申し込み後何日以上の継続利用が必要ですか？", a: "<strong>「106日以上」</strong>継続して利用することが条件です。" },
+        { cat: "キャンペーン", q: "「dバリューパス」や「dカード」等を併用している場合、当選確率は最大何倍になりますか？", a: "<strong>最大12倍</strong>になります。" },
+        { cat: "キャンペーン", q: "早期の申し込み（5月27日〜7月31日）による確率アップも含めると、当選確率は最大で何倍に？", a: "<strong>最大15倍</strong>までアップします。" }
+    ];
+
+    const STORAGE_KEY = 'anshin_security_202605_strict';
+
+    let learnedIndexes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    let currentIndex = 0;
+
+    function updateDisplay() {
+        const remaining = allData.filter((_, i) => !learnedIndexes.includes(i));
+        const progress = (learnedIndexes.length / allData.length) * 100;
+        
+        document.getElementById('progress-bar').style.width = progress + '%';
+        document.getElementById('stat-text').textContent = `確認済み: ${learnedIndexes.length} / 全${allData.length}項目`;
+
+        if (remaining.length === 0) {
+            document.getElementById('cat-display').textContent = "COMPLETED";
+            document.getElementById('cat-display').classList.remove('alert');
+            document.getElementById('q-display').innerHTML = "あんしんセキュリティの仕様を<br>完全習得しました。";
+            document.getElementById('a-display').innerHTML = "お客様のOSごとの仕様の違いや新旧プランの違いを正確に把握し、店舗での的確なサポートへお役立てください。";
+            document.getElementById('card').classList.remove('is-flipped');
+            return;
+        }
+
+        while (learnedIndexes.includes(currentIndex)) {
+            currentIndex = (currentIndex + 1) % allData.length;
+        }
+
+        const data = allData[currentIndex];
+        
+        const catBadge = document.getElementById('cat-display');
+        catBadge.textContent = data.cat;
+        if (data.isAlert) {
+            catBadge.classList.add('alert');
+        } else {
+            catBadge.classList.remove('alert');
+        }
+
+        document.getElementById('q-display').innerHTML = data.q;
+        document.getElementById('a-display').innerHTML = data.a;
+        document.getElementById('card').classList.remove('is-flipped');
+    }
+
+    function markAsLearned() {
+        if (!learnedIndexes.includes(currentIndex)) {
+            learnedIndexes.push(currentIndex);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(learnedIndexes));
+            nextCard();
+        }
+    }
+
+    function nextCard() {
+        currentIndex = (currentIndex + 1) % allData.length;
+        updateDisplay();
+    }
+
+    function resetProgress() {
+        if (confirm('確認状況をリセットしますか？')) {
+            learnedIndexes = [];
+            localStorage.removeItem(STORAGE_KEY);
+            currentIndex = 0;
+            updateDisplay();
+        }
+    }
+
+    updateDisplay();
+</script>
+</body>
+</html>
